@@ -83,6 +83,66 @@ model Sample {
   createdAt     DateTime    @default(now())
 }
 
+model Chat {
+  id            Int          @id @default(autoincrement())
+  chatName      String
+  chatTimeStamp DateTime     @default(now())
+  isGroupChat   Boolean      @default(false)
+
+  userProfiles  UserProfile[] @relation("ChatUserProfiles")
+
+  messages      Message[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Message {
+  id            Int          @id @default(autoincrement())
+  chat          Chat         @relation(fields: [chatId], references: [id])
+  chatId        Int
+  userProfile   UserProfile  @relation(fields: [userProfileId], references: [id])
+  userProfileId Int
+  content       String
+  createdAt     DateTime     @default(now())
+
+  formattedCreatedAt String?  @ignore  // Not stored, just for formatting purposes in app logic
+}
+
+
+model Post {
+  id           Int         @id @default(autoincrement())
+  postText     String
+  postTimeStamp DateTime   @default(now())
+
+  sample       Sample?     @relation(fields: [sampleId], references: [id])
+  sampleId     Int?
+
+  userProfile  UserProfile @relation(fields: [userProfileId], references: [id])
+  userProfileId Int
+
+  likes        User[]      @relation("PostLikes")
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Comment {
+  id              Int          @id @default(autoincrement())
+  commentMessage  String
+  commentTimeStamp DateTime    @default(now())
+
+  post            Post         @relation(fields: [postId], references: [id])
+  postId          Int
+
+  sample          Sample?      @relation(fields: [sampleId], references: [id])
+  sampleId        Int?
+
+  userProfile     UserProfile  @relation(fields: [userProfileId], references: [id])
+  userProfileId   Int
+
+  createdAt       DateTime     @default(now())
+}
 
 
 
