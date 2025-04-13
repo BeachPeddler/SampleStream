@@ -13,3 +13,76 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  password     String
+  userProfile  UserProfile?
+}
+
+model UserProfile {
+  id                  Int              @id @default(autoincrement())
+  userId              Int              @unique
+  user                User             @relation(fields: [userId], references: [id])
+  dateOfBirth         DateTime
+  userPhoto           String           @default("profile_pics/profile_picture_default.jpg")
+  bio                 String           @db.Text
+  isPrivate           Boolean          @default(false)
+
+  followers           Follow[]         @relation("FollowedBy")
+  following           Follow[]         @relation("Following")
+  followRequests      FollowRequest[]  @relation("FollowRequests")
+  sentFollowRequests  FollowRequest[]  @relation("SentFollowRequests")
+
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+}
+
+model Follow {
+  id           Int          @id @default(autoincrement())
+  follower     UserProfile  @relation("Following", fields: [followerId], references: [id])
+  followerId   Int
+  following    UserProfile  @relation("FollowedBy", fields: [followingId], references: [id])
+  followingId  Int
+  createdAt    DateTime     @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model FollowRequest {
+  id        Int          @id @default(autoincrement())
+  from      UserProfile  @relation("SentFollowRequests", fields: [fromId], references: [id])
+  fromId    Int
+  to        UserProfile  @relation("FollowRequests", fields: [toId], references: [id])
+  toId      Int
+  createdAt DateTime     @default(now())
+
+  @@unique([fromId, toId])
+}
+
+model Tag {
+  id      Int       @id @default(autoincrement())
+  name    String    @unique
+  samples Sample[]  @relation("SampleTags")
+}
+
+model Sample {
+  id            Int         @id @default(autoincrement())
+  name          String
+  audioFile     String
+  isPublic      Boolean     @default(true)
+  userProfile   UserProfile? @relation(fields: [userProfileId], references: [id])
+  userProfileId Int?
+
+  tags          Tag[]       @relation("SampleTags")
+
+  posts         Post[]
+  comments      Comment[]
+
+  createdAt     DateTime    @default(now())
+}
+
+
+
+
